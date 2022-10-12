@@ -1,12 +1,13 @@
 {
-  "name": "quasagram",
+  "name": "benagram",
   "version": "0.0.1",
   "description": "A Quasar Project",
   "productName": "Quasar App",
   "author": "ul1ra <benpetercunningham@gmail.com>",
   "private": true,
   "scripts": {
-    "icons": "icongenie generate -i favicon-camera.png --skip-trim --theme-color 212121"
+    "icons": "icongenie generate -i favicon-camera.png --skip-trim --theme-color 212121",
+    "deploy": "quasar build -m pwa && firebase deploy"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",

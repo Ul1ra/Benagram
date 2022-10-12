@@ -3,8 +3,8 @@ Dependencies
 */
 
 const express = require("express");
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getStorage } = require('firebase-admin/storage');
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getStorage } = require("firebase-admin/storage");
 const admin = require("firebase-admin");
 let inspect = require("util").inspect;
 let busboy = require("busboy");
@@ -27,7 +27,7 @@ const serviceAccount = require("./serviceAccountKey.json");
 
 initializeApp({
   credential: cert(serviceAccount),
-  storageBucket: "quasagram-f21ba.appspot.com",
+  storageBucket: "benagram-f21ba.appspot.com",
 });
 
 const db = admin.firestore();
@@ -99,10 +99,10 @@ app.post("/createPost", (request, response) => {
       },
       (err, uploadedFile) => {
         if (!err) {
-          createDocument(uploadedFile)
-        } 
+          createDocument(uploadedFile);
+        }
       }
-    )
+    );
 
     function createDocument(uploadedFile) {
       db.collection("posts")
@@ -112,10 +112,11 @@ app.post("/createPost", (request, response) => {
           caption: fields.caption,
           location: fields.location,
           date: parseInt(fields.date),
-          imageUrl: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${uploadedFile.name}?alt=media&token=${uuid}`
-        }).then(() => {
-          response.send('Post added:', fields.id)
+          imageUrl: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${uploadedFile.name}?alt=media&token=${uuid}`,
         })
+        .then(() => {
+          response.send("Post added:", fields.id);
+        });
     }
   });
   // Cloud functions:

@@ -13,7 +13,7 @@
         />
         <q-separator class="large-screen-only" vertical spaced />
         <q-toolbar-title class="text-grand-hotel text-bold">
-          Quasargram
+          Benargram
         </q-toolbar-title>
         <q-separator class="large-screen-only" vertical spaced />
         <q-btn
@@ -48,7 +48,7 @@
                 font-size="22px"
               />
             </template>
-            <b>Install Quasargram?</b>
+            <b>Install Benargram?</b>
             <template v-slot:action>
               <q-btn
                 @click="installApp"

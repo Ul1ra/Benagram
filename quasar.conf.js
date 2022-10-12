@@ -118,9 +118,9 @@ module.exports = function (/* ctx */) {
       workboxPluginMode: "InjectManifest", // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
       manifest: {
-        name: `Quasargram - Share your Experiences`,
+        name: `Benargram - Share your Experiences`,
         short_name: `A Simple Instagram Clone - Made with Quasar`,
-        description: `A Quasar Project`,
+        description: `A Simple Instagram Clone - Made with Quasar`,
         display: "standalone",
         orientation: "portrait",
         background_color: "#ffffff",
@@ -183,7 +183,7 @@ module.exports = function (/* ctx */) {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: "quasagram",
+        appId: "benagram",
       },
 
       // More info: https://v1.quasar.dev/quasar-cli/developing-electron-apps/node-integration

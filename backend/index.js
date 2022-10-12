@@ -25,7 +25,7 @@ const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "quasagram-f21ba.appspot.com",
+  storageBucket: "benagram-f21ba.appspot.com",
 });
 
 const db = admin.firestore();
