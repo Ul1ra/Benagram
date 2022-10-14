@@ -7,9 +7,16 @@
             v-for="post in posts"
             :key="post.id"
             class="card-posts q-mb-md"
+            :class="{ 'bg-red-1': post.offline }"
             bordered
             flat
           >
+            <q-badge
+              v-if="post.offline"
+              class="bage-offline red absolute-top-right"
+            >
+              Stored Offline
+            </q-badge>
             <q-item>
               <q-item-section avatar>
                 <q-avatar>
@@ -89,6 +96,8 @@
 
 <script>
 import { date } from "quasar";
+import { openDB } from "idb";
+// Avatar image
 import rocket from "../assets/startup3.png";
 
 export default {
@@ -109,6 +118,9 @@ export default {
           this.posts = response.data;
           // this.posts = []
           this.loadingPosts = false;
+          if (!navigator.onLine) {
+            this.getOfflinePosts();
+          }
         })
         .catch((err) => {
           this.$q.dialog({
@@ -118,6 +130,55 @@ export default {
           this.loadingPosts = false;
         });
     },
+    getOfflinePosts() {
+      let db = openDB("workbox-background-sync").then((db) => {
+        db.getAll("requests")
+          .then((failedRequests) => {
+            failedRequests.forEach((failedRequest) => {
+              if (failedRequest.queueName == "createPostQueue") {
+                let request = new Request(
+                  failedRequest.rewuestData.url,
+                  failedRequest.rewuestData
+                );
+                request.formData().then((formData) => {
+                  console.log("formData: ", formData);
+                  let offlinePost = {};
+                  offlinePost.id = formData.get("id");
+                  offlinePost.caption = formData.get("caption");
+                  offlinePost.location = formData.get("location");
+                  offlinePost.date = parsInt(formData.get("date"));
+                  offlinePost.offline = true;
+
+                  // grabbing our image file as a base64 url encoded string
+                  let reader = new FileReader();
+                  reader.readAsDataURL(formData.get("file"));
+                  reader.onloadend = () => {
+                    offlinePost.imageUrl = reader.result;
+                    this.posts.unshift(offlinePost);
+                  };
+                });
+              }
+            });
+          })
+          .catch((err) => {
+            console.log("Error accessing IndexedDB: ", err);
+          });
+      });
+    },
+    listenForrOfflinePostUploaded() {
+      if (this.serviceWorkerSupported) {
+        const channel = new BroadcastChannel("sw-messagees");
+        channel.addEventListener("message", (event) => {
+          console.log("Received", event.data);
+        });
+      }
+    },
+  },
+  computed: {
+    serviceWorkerSupported() {
+      if ("ServiceWorker" in navigator) return true;
+      return false;
+    },
   },
   filters: {
     formatDate(value) {
@@ -126,12 +187,15 @@ export default {
   },
   created() {
     this.getPosts();
+    this.listenForrOfflinePostUploaded();
   },
 };
 </script>
 
 <style lang="sass">
 .card-posts
+  .badge-offline
+      border-top-left-radius: 0 !important
   .img
     min-height: 200px
 </style>

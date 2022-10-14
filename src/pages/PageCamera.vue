@@ -99,6 +99,10 @@ export default {
       if ("geolocation" in navigator) return true;
       return false;
     },
+    backgroundSyncSupported() {
+      if ("serviceWorker" in navigator && "SyncManager" in window) return true;
+      return false;
+    },
   },
   methods: {
     initCamera() {
@@ -109,7 +113,7 @@ export default {
         .then((stream) => {
           this.$refs.video.srcObject = stream;
         })
-        .catch((error) => {
+        .catch((err) => {
           this.hasCameraSupport = false;
         });
     },
@@ -217,7 +221,7 @@ export default {
       formData.append("location", this.post.location);
       formData.append("date", this.post.date);
       formData.append("file", this.post.photo, this.post.id + ".png");
-      console.log(formData)
+      console.log(formData);
 
       this.$axios
         .post(`${process.env.API}/createPost`, formData)
@@ -232,10 +236,16 @@ export default {
         })
         .catch((err) => {
           console.log("err: ", err);
-          this.$q.dialog({
-            title: "Error",
-            message: "Sorry, could not create post!",
-          });
+          if (!navigator.onLine && this.backgroundSyncSupported) {
+            this.$q.notify("Post created offline");
+            this.$router.push("/");
+          } else {
+            this.$q.dialog({
+              title: "Error",
+              message: "Sorry, could not create post!",
+            });
+          }
+
           this.$q.loading.hide();
         });
     },
