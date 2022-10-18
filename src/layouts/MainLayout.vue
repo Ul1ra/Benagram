@@ -3,17 +3,17 @@
     <q-header class="bg-white text-grey-10" bordered elevated>
       <q-toolbar class="constrain">
         <q-btn
+          to="/camera"
           class="large-screen-only q-mr-sm"
           icon="eva-camera-outline"
           size="18px"
-          to="/camera"
           dense
           flat
           round
         />
         <q-separator class="large-screen-only" vertical spaced />
         <q-toolbar-title class="text-grand-hotel text-bold">
-          Benargram
+          Benagram
         </q-toolbar-title>
         <q-separator class="large-screen-only" vertical spaced />
         <q-btn
@@ -48,7 +48,7 @@
                 font-size="22px"
               />
             </template>
-            <b>Install Benargram?</b>
+            <b>Install Benagram?</b>
             <template v-slot:action>
               <q-btn
                 @click="installApp"
@@ -86,7 +86,9 @@
     </q-footer>
 
     <q-page-container class="bg-grey-1">
-      <router-view />
+      <keep-alive>
+        <router-view :include="['PageHome']" />
+      </keep-alive>
     </q-page-container>
   </q-layout>
 </template>
@@ -131,6 +133,7 @@ export default {
     let neverShowAppInstallBanner = this.$q.localStorage.getItem(
       "neverShowAppInstallBanner"
     );
+
     if (!neverShowAppInstallBanner) {
       window.addEventListener("beforeinstallprompt", (e) => {
         // Prevent the mini-infobar from appearing on mobile
@@ -140,12 +143,8 @@ export default {
         // Update UI notify the user they can install the PWA
         setTimeout(() => {
           this.showAppInstallBanner = true;
-        }, 2000);
-        // Optionally, send analytics event that PWA install promo was shown.
-        console.log(`'beforeinstallprompt' event was fired.`);
+        }, 3000);
       });
-    } else {
-      console.log("error");
     }
   },
 };

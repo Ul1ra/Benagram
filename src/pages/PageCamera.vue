@@ -221,7 +221,7 @@ export default {
       formData.append("location", this.post.location);
       formData.append("date", this.post.date);
       formData.append("file", this.post.photo, this.post.id + ".png");
-      console.log(formData);
+      // console.log(formData);
 
       this.$axios
         .post(`${process.env.API}/createPost`, formData)
@@ -245,7 +245,6 @@ export default {
               message: "Sorry, could not create post!",
             });
           }
-
           this.$q.loading.hide();
         });
     },

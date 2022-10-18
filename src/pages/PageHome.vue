@@ -1,5 +1,49 @@
 <template>
   <q-page class="constrain q-pa-md">
+    <transition
+      appear
+      enter-active-class="animated fadeIn"
+      leave-active-class="animated fadeOut"
+    >
+      <div v-if="showNotificationsBanner" class="banner-container bg-primary">
+        <div class="constrain">
+          <q-banner inline-actions dense class="bg-green q-mb-md">
+            <template v-slot:avatar>
+              <q-avatar
+                color="grey-3"
+                text-color="grey-10"
+                icon="eva-bell-outline"
+                font-size="22px"
+              />
+            </template>
+            <b text-color="grey-3">Enable Notifications?</b>
+            <template v-slot:action>
+              <q-btn
+                @click="enableNotifications"
+                class="q-px-sm"
+                flat
+                label="Yes"
+                dense
+              />
+              <q-btn
+                @click="showNotificationsBanner = false"
+                class="q-px-sm"
+                flat
+                label="Later"
+                dense
+              />
+              <q-btn
+                @click="neverShowNotificationsBanner"
+                class="q-px-sm"
+                flat
+                label="Never"
+                dense
+              />
+            </template>
+          </q-banner>
+        </div>
+      </div>
+    </transition>
     <div class="row q-col-gutter-lg">
       <div class="col-12 col-sm-8">
         <template v-if="!loadingPosts && posts.length">
@@ -14,6 +58,7 @@
             <q-badge
               v-if="post.offline"
               class="bage-offline red absolute-top-right"
+              color="red"
             >
               Stored Offline
             </q-badge>
@@ -76,6 +121,7 @@
           </q-card>
         </template>
       </div>
+
       <div class="col-4 large-screen-only">
         <q-item class="fixed">
           <q-item-section avatar>
@@ -104,10 +150,17 @@ export default {
   name: "PageHome",
   data() {
     return {
-      rocket: rocket,
       posts: [],
       loadingPosts: false,
+      rocket: rocket,
+      showNotificationsBanner: false,
     };
+  },
+  computed: {
+    serviceWorkerSupported() {
+      if ("serviceWorker" in navigator) return true;
+      return false;
+    },
   },
   methods: {
     getPosts() {
@@ -116,7 +169,6 @@ export default {
         .get(`${process.env.API}/posts`)
         .then((response) => {
           this.posts = response.data;
-          // this.posts = []
           this.loadingPosts = false;
           if (!navigator.onLine) {
             this.getOfflinePosts();
@@ -125,7 +177,7 @@ export default {
         .catch((err) => {
           this.$q.dialog({
             title: "Error",
-            message: "Could could not download posts",
+            message: "Could not download posts.",
           });
           this.loadingPosts = false;
         });
@@ -137,25 +189,25 @@ export default {
             failedRequests.forEach((failedRequest) => {
               if (failedRequest.queueName == "createPostQueue") {
                 let request = new Request(
-                  failedRequest.rewuestData.url,
-                  failedRequest.rewuestData
+                  failedRequest.requestData.url,
+                  failedRequest.requestData
                 );
                 request.formData().then((formData) => {
-                  console.log("formData: ", formData);
                   let offlinePost = {};
                   offlinePost.id = formData.get("id");
                   offlinePost.caption = formData.get("caption");
                   offlinePost.location = formData.get("location");
-                  offlinePost.date = parsInt(formData.get("date"));
+                  offlinePost.date = parseInt(formData.get("date"));
                   offlinePost.offline = true;
 
-                  // grabbing our image file as a base64 url encoded string
                   let reader = new FileReader();
                   reader.readAsDataURL(formData.get("file"));
                   reader.onloadend = () => {
+                    // let offlinePost = {}; // This is not the error
                     offlinePost.imageUrl = reader.result;
                     this.posts.unshift(offlinePost);
                   };
+                  console.log(offlinePost);
                 });
               }
             });
@@ -165,29 +217,49 @@ export default {
           });
       });
     },
-    listenForrOfflinePostUploaded() {
+    listenForOfflinePostUploaded() {
       if (this.serviceWorkerSupported) {
-        const channel = new BroadcastChannel("sw-messagees");
+        const channel = new BroadcastChannel("sw-messages");
         channel.addEventListener("message", (event) => {
           console.log("Received", event.data);
+          if (event.data.msg == "offline-post-uploaded") {
+            let offlinePostCount = this.posts.filter(
+              (post) => post.offline == true
+            ).length;
+            this.posts[offlinePostCount - 1].offline = false;
+          }
         });
       }
     },
-  },
-  computed: {
-    serviceWorkerSupported() {
-      if ("ServiceWorker" in navigator) return true;
-      return false;
+    initNotificationsBanner() {
+      let neverShowNotificationsBanner = this.$q.localStorage.getItem(
+        "neverShowNotificationsBanner"
+      );
+
+      if (!neverShowNotificationsBanner) {
+        this.showNotificationsBanner = true;
+      }
+    },
+    enableNotifications() {
+      console.log("enableNotifications");
+    },
+    neverShowNotificationsBanner() {
+      this.showNotificationsBanner = false;
+      this.$q.localStorage.set("neverShowNotificationsBanner", true);
     },
   },
   filters: {
     formatDate(value) {
-      return date.formatDate(value, "D MMMM h:mmA");
+      return date.formatDate(value, "MMMM D h:mmA");
     },
   },
-  created() {
+  activated() {
+    console.log("activated");
     this.getPosts();
-    this.listenForrOfflinePostUploaded();
+  },
+  created() {
+    this.listenForOfflinePostUploaded();
+    this.initNotificationsBanner();
   },
 };
 </script>
